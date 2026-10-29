@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Prenota la tua consulenza | Linea Pensione</title>
+<meta name="description" content="Rispondi a poche domande e prenota la chiamata con un consulente previdenziale Linea Pensione.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ====== COLORI BRAND (modifica qui se serve) ====== */
+  :root{
+    --navy:#042B9B;       /* blu del logo */
+    --navy-soft:#2E4FB3;
+    --accent:#BCF812;     /* verde lime del logo */
+    --lime:#BCF812;
+    --lime-soft:#F3FCD6;
+    --bg:#F4F6FA;
+    --card:#FFFFFF;
+    --text:#1C2433;
+    --muted:#667085;
+    --border:#DDE3EC;
+    --error:#C8372D;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:620px;margin:0 auto;padding:20px 16px 48px;min-height:100vh;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .logo img{height:30px;display:block}
+  .logo-text{font-weight:700;font-size:20px;color:var(--navy);letter-spacing:-.3px}
+  .logo-text span{border-top:3px solid var(--accent);padding-top:1px}
+  .back{background:none;border:none;color:var(--navy-soft);font:inherit;font-size:14px;font-weight:500;cursor:pointer;padding:8px 4px;border-radius:10px;visibility:hidden}
+  .back.show{visibility:visible}
+  .progress{height:8px;background:#E3E8F0;border-radius:99px;overflow:hidden;margin-bottom:22px}
+  .progress div{height:100%;width:0;background:var(--lime);border-radius:99px;transition:width .35s ease}
+  .card{background:var(--card);border-radius:24px;padding:28px 22px;box-shadow:0 10px 30px rgba(4,43,155,.08);animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .step-label{font-size:13px;font-weight:600;color:var(--navy-soft);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+  h1{font-size:22px;line-height:1.3;color:var(--navy);font-weight:700;margin-bottom:8px}
+  .sub{color:var(--muted);font-size:15px;margin-bottom:20px}
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:2px solid var(--border);border-radius:var(--radius);padding:15px 16px;font:inherit;font-size:16px;color:var(--text);cursor:pointer;transition:border-color .15s,background .15s,transform .1s}
+  .opt:hover{border-color:var(--navy-soft)}
+  .opt:active{transform:scale(.99)}
+  .opt .dot{flex:0 0 22px;height:22px;border-radius:50%;border:2px solid var(--border);display:grid;place-items:center;transition:all .15s}
+  .opt.multi .dot{border-radius:7px}
+  .opt.sel{border-color:var(--navy);background:var(--lime-soft)}
+  .opt.sel .dot{background:var(--navy);border-color:var(--navy)}
+  .opt.sel .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--lime)}
+  .opt.multi.sel .dot::after{width:10px;height:6px;border-radius:0;background:none;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+  .group-title{font-weight:600;color:var(--navy);font-size:15px;margin:6px 0 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .chip{background:#fff;border:2px solid var(--border);border-radius:99px;padding:10px 16px;font:inherit;font-size:15px;color:var(--text);cursor:pointer;transition:all .15s}
+  .chip.sel{border-color:var(--navy);background:var(--navy);color:#fff}
+  .btn{display:block;width:100%;margin-top:20px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);padding:17px 20px;font:inherit;font-size:17px;font-weight:600;cursor:pointer;transition:background .15s,opacity .15s}
+  .btn:hover{background:var(--navy-soft)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.accent{background:var(--accent);color:var(--navy)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:14px;font-weight:500;color:var(--navy);margin-bottom:6px}
+  .field input::placeholder{color:#AAB4C3}
+  .field input{width:100%;border:2px solid var(--border);border-radius:14px;padding:14px 14px;font:inherit;font-size:16px;color:var(--text);background:#fff;outline:none;transition:border-color .15s}
+  .field input:focus{border-color:var(--navy)}
+  .field.err input{border-color:var(--error)}
+  .field .msg{display:none;color:var(--error);font-size:13px;margin-top:5px}
+  .field.err .msg{display:block}
+  .row{display:flex;gap:10px}.row .field{flex:1}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin-top:4px}
+  .consent input{margin-top:3px;width:18px;height:18px;accent-color:var(--navy);flex:0 0 18px}
+  .consent a{color:var(--navy)}
+  .consent.err{color:var(--error)}
+  .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
+  .note{background:var(--lime-soft);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--navy);margin-bottom:18px}
+  .intro{text-align:center;padding-top:40px;padding-bottom:36px}
+  .intro h1{font-size:27px;margin-bottom:12px}
+  .intro .time{color:var(--muted);font-size:14px;margin-top:14px}
+  .end{text-align:center}
+  .end .icon{width:64px;height:64px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;font-size:30px}
+  .end .icon.ok{background:var(--lime-soft);color:var(--navy)}
+  .end .icon.ko{background:#EEF1F6;color:var(--navy-soft)}
+  .end p{color:var(--muted);font-size:15px;margin-bottom:10px}
+  .trust{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:13px}
+  .trust span::before{content:"✓ ";color:var(--navy);font-weight:700}
+  footer{margin-top:auto;padding-top:28px;text-align:center;font-size:12px;color:var(--muted)}
+  @media (min-width:640px){.card{padding:36px 34px}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" id="logo">
+      <!-- Se il file del logo ha un altro nome/percorso, cambialo qui -->
+      <img src="logo-linea-pensione.png" alt="Linea Pensione">
+    </div>
+    <button class="back" id="back" type="button">← Indietro</button>
+  </header>
+  <div class="progress"><div id="bar"></div></div>
+  <main id="app"></main>
+  <div class="trust" id="trust"><span>Consulenti previdenziali</span><span>Analisi completa del tuo caso</span><span>Dati protetti</span></div>
+  <footer>© Linea Pensione · <a href="/privacy-policy.html" style="color:inherit">Privacy</a></footer>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURAZIONE — compila questi valori
+   ========================================================= */
+const CONFIG = {
+  ENDPOINT: 'https://script.google.com/macros/s/AKfycby1NHYyjiUuqD-FeGcRQ6VwvsIx49ukU-kG81jrqFr0dJ8PrxXSe3rbQWMe42CRXm9tWA/exec',   // URL dell'app web di Google Apps Script
+  PIXEL_ID: '1824865735523325',          // ID del Pixel Meta
+  PRIVACY_URL: '/privacy-policy.html'               // pagina informativa privacy sul sito
+};
+
+/* ====== Meta Pixel ====== */
+if (/^\d+$/.test(CONFIG.PIXEL_ID)) {
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', CONFIG.PIXEL_ID);
+  fbq('track', 'PageView');
+}
+function px(type, name, data, opts){ try{ if (window.fbq) fbq(type, name, data || {}, opts || {}); }catch(e){} }
+
+/* ====== DOMANDE (stesso flusso del form dalle ads) ====== */
+const STEPS = [
+  { id:'professione', type:'single', q:'Professione',
+    options:['Dipendente privato','Dipendente pubblico','Iscritto ad albo / cassa professionale','Titolare di impresa / Partita IVA','Forze dell\'ordine / militare','ENPALS','Fondo speciale','Dirigente','Altro'] },
+  { id:'sesso', type:'single', q:'Sei…',
+    options:['Uomo','Donna','Altro / preferisco non dire'] },
+  { id:'nominativo', type:'name', q:'Come ti chiami?' },
+  { id:'telefono', type:'phone', q:'A quale numero di telefono vuoi essere contattato?' },
+  { id:'fascia', type:'single', q:'Quando preferisci essere contattato dal team di Linea Pensione?',
+    sub:'Scegli l\'orario per te più comodo. Verrai ricontattato entro 48 ore.',
+    options:['Prima mattina (09:00 – 11:00)','Tarda mattinata (11:00 – 12:45)','Primo pomeriggio (14:00 – 16:30)','Tardo pomeriggio (16:30 – 17:45)'] },
+  { id:'email', type:'email', q:'Scrivi il tuo indirizzo email',
+    sub:'Ci servirà per confermare il tuo appuntamento.' }
+];
+
+const state = { i:-1, history:[], answers:{}, started:false, done:false };
+const app = document.getElementById('app');
+const bar = document.getElementById('bar');
+const backBtn = document.getElementById('back');
+
+/* ====== Tracciamento campagne ====== */
+const params = new URLSearchParams(location.search);
+function cookie(n){ const m = document.cookie.match('(^|;)\\s*'+n+'=([^;]*)'); return m ? decodeURIComponent(m[2]) : ''; }
+function tracking(){
+  const t = {};
+  ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid'].forEach(k => t[k] = params.get(k) || '');
+  t.fbp = cookie('_fbp'); t.fbc = cookie('_fbc');
+  t.pagina = location.href.split('?')[0];
+  return t;
+}
+
+/* ====== Helpers ====== */
+function el(tag, attrs, children){
+  const e = document.createElement(tag);
+  for (const k in (attrs||{})) {
+    if (k === 'class') e.className = attrs[k];
+    else if (k === 'text') e.textContent = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children||[]).forEach(c => c && e.appendChild(c));
+  return e;
+}
+function setProgress(){
+  const pct = state.done ? 100 : (state.i < 0 ? 0 : Math.max(4, Math.round((state.i / STEPS.length) * 100)));
+  bar.style.width = pct + '%';
+  backBtn.classList.toggle('show', state.history.length > 0 && !state.done);
+}
+function head(step){
+  return [
+    el('div',{class:'step-label',text:'Passo '+(state.i+1)+' di '+STEPS.length}),
+    el('h1',{text:step.q + ' *'}),
+    step.sub ? el('p',{class:'sub',text:step.sub}) : null
+  ];
+}
+function go(next){
+  state.history.push(state.i);
+  state.i = next;
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function field(id, label, type, ac, msg, val, ph){
+  const input = el('input',{id, name:id, type, autocomplete:ac, placeholder:ph||''});
+  if (val) input.value = val;
+  if (type === 'tel') input.setAttribute('inputmode','tel');
+  const f = el('div',{class:'field'},[label ? el('label',{for:id,text:label}) : null, input, el('div',{class:'msg',text:msg})]);
+  input.addEventListener('input', () => f.classList.remove('err'));
+  return f;
+}
+/* Controllo telefono "largo": blocca solo numeri palesemente impossibili
+   (troppo corti/lunghi o con lettere). Accetta cellulari, fissi ed esteri. */
+function normPhone(raw){
+  const s = String(raw).trim();
+  if (/[a-zA-Z]/.test(s)) return null;
+  let d = s.replace(/[^\d+]/g,'');
+  if (d.startsWith('00')) d = '+' + d.slice(2);
+  const digits = d.replace(/\D/g,'');
+  if (d.startsWith('+')) return (digits.length >= 8 && digits.length <= 15) ? '+' + digits : null;
+  if (/^39[03]\d{8,10}$/.test(digits)) return '+' + digits;   // scritto "39..." senza il +
+  return (digits.length >= 6 && digits.length <= 12) ? '+39' + digits : null;
+}
+function formStep(card, fields, btnText, onSubmit){
+  const btn = el('button',{type:'submit',class:'btn',text:btnText});
+  const form = el('form',{novalidate:'novalidate'}, fields.concat([btn]));
+  form.addEventListener('submit', ev => { ev.preventDefault(); onSubmit(form, btn); });
+  card.appendChild(form);
+  setTimeout(() => { const i = form.querySelector('input'); if (i && window.innerWidth > 640) i.focus(); }, 50);
+}
+
+/* ====== Render ====== */
+function render(){
+  setProgress();
+  if (state.i < 0) return intro();
+  const step = STEPS[state.i];
+  const card = el('div',{class:'card'}, head(step));
+  ({ single, name:nameStep, phone:phoneStep, email:emailStep })[step.type](step, card);
+  app.replaceChildren(card);
+}
+
+function intro(){
+  const start = el('button',{type:'button',class:'btn accent',text:'Continua'});
+  start.addEventListener('click', () => {
+    if (!state.started){ state.started = true; px('trackCustom','QuizIniziato'); }
+    go(0);
+  });
+  app.replaceChildren(el('div',{class:'card intro'},[
+    el('h1',{text:'Quando e con quanti soldi andrai in pensione?'}),
+    el('p',{class:'sub',text:'Scoprilo subito: clicca su continua!'}),
+    start,
+    el('div',{class:'time',text:'⏱ Ci vogliono 45 secondi'})
+  ]));
+}
+
+function single(step, card){
+  const box = el('div',{class:'options'});
+  step.options.forEach(o => {
+    const b = el('button',{type:'button',class:'opt'+(state.answers[step.id]===o?' sel':'')},[el('span',{class:'dot'}),el('span',{text:o})]);
+    b.addEventListener('click', () => {
+      state.answers[step.id] = o;
+      box.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      setTimeout(() => go(state.i + 1), 220);
+    });
+    box.appendChild(b);
+  });
+  card.appendChild(box);
+}
+
+function nameStep(step, card){
+  const a = state.answers;
+  const nome = field('nome','Nome *','text','given-name','Inserisci il tuo nome', a.nome, 'Francesco');
+  const cognome = field('cognome','Cognome *','text','family-name','Inserisci il tuo cognome', a.cognome, 'Rossi');
+  formStep(card, [nome, cognome], 'Ok', form => {
+    const n = form.querySelector('#nome').value.trim(), c = form.querySelector('#cognome').value.trim();
+    let ok = true;
+    if (n.length < 2){ nome.classList.add('err'); ok = false; }
+    if (c.length < 2){ cognome.classList.add('err'); ok = false; }
+    if (!ok) return;
+    a.nome = n; a.cognome = c; go(state.i + 1);
+  });
+}
+
+function phoneStep(step, card){
+  const a = state.answers;
+  const tel = field('telefono','','tel','tel','Controlla il numero inserito (es. 312 345 6789)', a.telefonoRaw, '🇮🇹  312 345 6789');
+  formStep(card, [tel], 'Ok', form => {
+    const raw = form.querySelector('#telefono').value.trim(), p = normPhone(raw);
+    if (!p){ tel.classList.add('err'); return; }
+    a.telefono = p; a.telefonoRaw = raw; go(state.i + 1);
+  });
+}
+
+function emailStep(step, card){
+  const a = state.answers;
+  const email = field('email','','email','email','Inserisci un indirizzo email valido', a.email, 'nome@esempio.com');
+  const hp = el('input',{class:'hp',type:'text',name:'website',tabindex:'-1',autocomplete:'off','aria-hidden':'true'});
+  const chk = el('input',{type:'checkbox',id:'privacy'});
+  const consent = el('label',{class:'consent',for:'privacy'},[chk]);
+  const ctext = el('span');
+  ctext.append('Ho letto l\'', el('a',{href:CONFIG.PRIVACY_URL,target:'_blank',rel:'noopener',text:'informativa privacy'}), ' e acconsento a essere ricontattato da Linea Pensione per la consulenza richiesta.');
+  consent.appendChild(ctext);
+  chk.addEventListener('change', () => consent.classList.remove('err'));
+  formStep(card, [email, hp, consent], 'Invia', async (form, btn) => {
+    const e = form.querySelector('#email').value.trim();
+    let ok = true;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){ email.classList.add('err'); ok = false; }
+    if (!chk.checked){ consent.classList.add('err'); ok = false; }
+    if (!ok) return;
+    a.email = e;
+    btn.disabled = true; btn.textContent = 'Invio in corso…';
+    const eventId = 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    if (!(await send(eventId, hp.value))){
+      btn.disabled = false; btn.textContent = 'Invia';
+      alert('Si è verificato un problema di connessione. Riprova tra qualche secondo.');
+      return;
+    }
+    px('track','Lead',{content_name:'Consulenza pensionistica'},{eventID:eventId});
+    finish();
+  });
+}
+
+/* ====== Invio a Google Sheet ====== */
+async function send(eventId, honeypot){
+  const a = state.answers;
+  const payload = {
+    stato:'Nuovo', eventId, website: honeypot || '',
+    contact: { nome:a.nome||'', cognome:a.cognome||'', telefono:a.telefono||'', email:a.email||'' },
+    answers: { professione:a.professione||'', sesso:a.sesso||'', fascia:a.fascia||'' },
+    tracking: tracking()
+  };
+  if (!/^https:\/\//.test(CONFIG.ENDPOINT)){ console.warn('ENDPOINT non configurato', JSON.stringify(payload)); return true; }
+  try{
+    await fetch(CONFIG.ENDPOINT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ====== Schermata finale ====== */
+function finish(){
+  state.done = true; setProgress();
+  const a = state.answers;
+  app.replaceChildren(el('div',{class:'card end'},[
+    el('div',{class:'icon ok',text:'✓'}),
+    el('h1',{text:'Richiesta ricevuta, ' + (a.nome || '') + '!'}),
+    el('p',{text:'Un consulente Linea Pensione ti chiamerà entro 48 ore, nella fascia ' + (a.fascia || 'che hai scelto').toLowerCase() + ', al numero che hai indicato.'}),
+    el('p',{text:'Tieni a portata di mano, se ce l\'hai, il tuo estratto conto contributivo INPS: ci aiuterà a ricostruire il tuo caso più velocemente.'})
+  ]));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+backBtn.addEventListener('click', () => {
+  if (!state.history.length || state.done) return;
+  state.i = state.history.pop();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
