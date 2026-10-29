@@ -69,10 +69,15 @@
   .field .msg{display:none;color:var(--error);font-size:13px;margin-top:5px}
   .field.err .msg{display:block}
   .row{display:flex;gap:10px}.row .field{flex:1}
-  .consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin-top:4px}
-  .consent input{margin-top:3px;width:18px;height:18px;accent-color:var(--navy);flex:0 0 18px}
+  .consent-wrap{border:2px solid transparent;border-radius:14px;padding:10px 12px;margin:4px -12px 0;transition:border-color .2s,background .2s}
+  .consent-wrap.err{border-color:var(--error);background:#FDEEEC;animation:shake .4s}
+  .consent-msg{display:none;color:var(--error);font-size:13px;font-weight:600;margin-top:8px}
+  .consent-wrap.err .consent-msg{display:block}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+  .consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted)}
+  .consent input{margin-top:2px;width:22px;height:22px;accent-color:var(--navy);flex:0 0 22px}
   .consent a{color:var(--navy)}
-  .consent.err{color:var(--error)}
+  .consent-wrap.err .consent{color:var(--text)}
   .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
   .note{background:var(--lime-soft);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--navy);margin-bottom:18px}
   .intro{text-align:center;padding-top:40px;padding-bottom:36px}
@@ -133,9 +138,10 @@ const STEPS = [
   { id:'sesso', type:'single', q:'Sei…',
     options:['Uomo','Donna','Altro / preferisco non dire'] },
   { id:'nominativo', type:'name', q:'Come ti chiami?' },
-  { id:'telefono', type:'phone', q:'A quale numero di telefono vuoi essere contattato?' },
+  { id:'telefono', type:'phone', q:'A quale numero di telefono vuoi essere contattato?',
+    sub:'Ti chiamerà un nostro consulente. La prima chiamata è gratuita e senza impegno.' },
   { id:'fascia', type:'single', q:'Quando preferisci essere contattato dal team di Linea Pensione?',
-    sub:'Scegli l\'orario per te più comodo. Verrai ricontattato entro 48 ore.',
+    sub:'Scegli l\'orario per te più comodo. Verrai ricontattato entro 24 ore.',
     options:['Prima mattina (09:00 – 11:00)','Tarda mattinata (11:00 – 12:45)','Primo pomeriggio (14:00 – 16:30)','Tardo pomeriggio (16:30 – 17:45)'] },
   { id:'email', type:'email', q:'Scrivi il tuo indirizzo email',
     sub:'Ci servirà per confermare il tuo appuntamento.' }
@@ -286,12 +292,17 @@ function emailStep(step, card){
   const ctext = el('span');
   ctext.append('Ho letto l\'', el('a',{href:CONFIG.PRIVACY_URL,target:'_blank',rel:'noopener',text:'informativa privacy'}), ' e acconsento a essere ricontattato da Linea Pensione per la consulenza richiesta.');
   consent.appendChild(ctext);
-  chk.addEventListener('change', () => consent.classList.remove('err'));
-  formStep(card, [email, hp, consent], 'Invia', async (form, btn) => {
+  const consentWrap = el('div',{class:'consent-wrap'},[consent, el('div',{class:'consent-msg',text:'⚠ Per inviare la richiesta spunta la casella qui sopra.'})]);
+  chk.addEventListener('change', () => consentWrap.classList.remove('err'));
+  formStep(card, [email, hp, consentWrap], 'Invia', async (form, btn) => {
     const e = form.querySelector('#email').value.trim();
     let ok = true;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){ email.classList.add('err'); ok = false; }
-    if (!chk.checked){ consent.classList.add('err'); ok = false; }
+    if (!chk.checked){
+      consentWrap.classList.remove('err'); void consentWrap.offsetWidth;   // riavvia l'animazione
+      consentWrap.classList.add('err'); ok = false;
+      if (!email.classList.contains('err')) consentWrap.scrollIntoView({behavior:'smooth',block:'center'});
+    }
     if (!ok) return;
     a.email = e;
     btn.disabled = true; btn.textContent = 'Invio in corso…';
@@ -329,8 +340,8 @@ function finish(){
   app.replaceChildren(el('div',{class:'card end'},[
     el('div',{class:'icon ok',text:'✓'}),
     el('h1',{text:'Richiesta ricevuta, ' + (a.nome || '') + '!'}),
-    el('p',{text:'Un consulente Linea Pensione ti chiamerà entro 48 ore, nella fascia ' + (a.fascia || 'che hai scelto').toLowerCase() + ', al numero che hai indicato.'}),
-    el('p',{text:'Tieni a portata di mano, se ce l\'hai, il tuo estratto conto contributivo INPS: ci aiuterà a ricostruire il tuo caso più velocemente.'})
+    el('p',{text:'Perfetto! Il tuo caso è nelle mani giuste: presto avrai le risposte che cerchi.'}),
+    el('p',{text:'Ti chiameremo entro 24 ore, nella fascia ' + (a.fascia || 'che hai scelto').toLowerCase() + ', al numero che hai indicato.'})
   ]));
   window.scrollTo({top:0,behavior:'smooth'});
 }
