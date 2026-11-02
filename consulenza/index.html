@@ -142,7 +142,7 @@ const STEPS = [
     sub:'Ti chiamerà un nostro consulente. La prima chiamata è gratuita e senza impegno.' },
   { id:'fascia', type:'single', q:'Quando preferisci essere contattato dal team di Linea Pensione?',
     sub:'Scegli l\'orario per te più comodo. Verrai ricontattato entro 24 ore.',
-    options:['Prima mattina (09:00 – 11:00)','Tarda mattinata (11:00 – 12:45)','Primo pomeriggio (14:00 – 16:30)','Tardo pomeriggio (16:30 – 17:45)'] },
+    options:['Mattina (09:00 – 11:00)','Tarda mattinata (11:00 – 13:00)','Primo pomeriggio (13:00 – 15:00)','Pomeriggio (15:00 – 18:00)'] },
   { id:'email', type:'email', q:'Scrivi il tuo indirizzo email',
     sub:'Ci servirà per confermare il tuo appuntamento.' }
 ];
@@ -212,13 +212,33 @@ function normPhone(raw){
   if (/^39[03]\d{8,10}$/.test(digits)) return '+' + digits;   // scritto "39..." senza il +
   return (digits.length >= 6 && digits.length <= 12) ? '+39' + digits : null;
 }
+function showFirstError(form){
+  const f = form.querySelector('.err');
+  if (!f) return;
+  f.scrollIntoView({behavior:'smooth', block:'center'});
+  const i = f.querySelector('input'); if (i) i.focus();
+}
 function formStep(card, fields, btnText, onSubmit){
-  const btn = el('button',{type:'submit',class:'btn',text:btnText});
+  // Pulsante normale (non "submit"): funziona anche dove l'invio dei form è bloccato (anteprime, alcuni browser in-app)
+  const btn = el('button',{type:'button',class:'btn',text:btnText});
   const form = el('form',{novalidate:'novalidate'}, fields.concat([btn]));
-  form.addEventListener('submit', ev => { ev.preventDefault(); onSubmit(form, btn); });
+  const run = () => onSubmit(form, btn);
+  btn.addEventListener('click', run);
+  form.addEventListener('submit', ev => ev.preventDefault());
+  // Tasto Invio/Vai della tastiera: passa al campo successivo vuoto, altrimenti conferma
+  const inputs = [...form.querySelectorAll('input:not(.hp):not([type=checkbox])')];
+  inputs.forEach((inp, idx) => inp.addEventListener('keydown', ev => {
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    const next = inputs.slice(idx + 1).find(x => !x.value.trim());
+    if (next) next.focus(); else { inp.blur(); run(); }
+  }));
   card.appendChild(form);
   setTimeout(() => { const i = form.querySelector('input'); if (i && window.innerWidth > 640) i.focus(); }, 50);
 }
+
+/* Mostra una schermata (compatibile anche con telefoni/browser vecchi) */
+function setView(node){ while (app.firstChild) app.removeChild(app.firstChild); app.appendChild(node); }
 
 /* ====== Render ====== */
 function render(){
@@ -227,7 +247,7 @@ function render(){
   const step = STEPS[state.i];
   const card = el('div',{class:'card'}, head(step));
   ({ single, name:nameStep, phone:phoneStep, email:emailStep })[step.type](step, card);
-  app.replaceChildren(card);
+  setView(card);
 }
 
 function intro(){
@@ -236,7 +256,7 @@ function intro(){
     if (!state.started){ state.started = true; px('trackCustom','QuizIniziato'); }
     go(0);
   });
-  app.replaceChildren(el('div',{class:'card intro'},[
+  setView(el('div',{class:'card intro'},[
     el('h1',{text:'Quando e con quanti soldi andrai in pensione?'}),
     el('p',{class:'sub',text:'Scoprilo subito: clicca su continua!'}),
     start,
@@ -263,12 +283,17 @@ function nameStep(step, card){
   const a = state.answers;
   const nome = field('nome','Nome *','text','given-name','Inserisci il tuo nome', a.nome, 'Francesco');
   const cognome = field('cognome','Cognome *','text','family-name','Inserisci il tuo cognome', a.cognome, 'Rossi');
+  const nIn = nome.querySelector('input'), cIn = cognome.querySelector('input');
+  nIn.setAttribute('enterkeyhint','next'); cIn.setAttribute('enterkeyhint','next');
+  nIn.setAttribute('autocapitalize','words'); cIn.setAttribute('autocapitalize','words');
   formStep(card, [nome, cognome], 'Ok', form => {
-    const n = form.querySelector('#nome').value.trim(), c = form.querySelector('#cognome').value.trim();
+    let n = nIn.value.trim().replace(/\s+/g,' '), c = cIn.value.trim().replace(/\s+/g,' ');
+    // Se ha scritto "Nome Cognome" tutto nel primo campo, lo dividiamo noi
+    if (!c && n.includes(' ')){ const i = n.lastIndexOf(' '); c = n.slice(i+1); n = n.slice(0,i); nIn.value = n; cIn.value = c; }
     let ok = true;
-    if (n.length < 2){ nome.classList.add('err'); ok = false; }
-    if (c.length < 2){ cognome.classList.add('err'); ok = false; }
-    if (!ok) return;
+    if (!/[a-zà-ÿ]/i.test(n)){ nome.classList.add('err'); ok = false; }
+    if (!/[a-zà-ÿ]/i.test(c)){ cognome.classList.add('err'); ok = false; }
+    if (!ok){ showFirstError(form); return; }
     a.nome = n; a.cognome = c; go(state.i + 1);
   });
 }
@@ -278,7 +303,7 @@ function phoneStep(step, card){
   const tel = field('telefono','','tel','tel','Controlla il numero inserito (es. 312 345 6789)', a.telefonoRaw, '🇮🇹  312 345 6789');
   formStep(card, [tel], 'Ok', form => {
     const raw = form.querySelector('#telefono').value.trim(), p = normPhone(raw);
-    if (!p){ tel.classList.add('err'); return; }
+    if (!p){ tel.classList.add('err'); showFirstError(form); return; }
     a.telefono = p; a.telefonoRaw = raw; go(state.i + 1);
   });
 }
@@ -297,7 +322,7 @@ function emailStep(step, card){
   formStep(card, [email, hp, consentWrap], 'Invia', async (form, btn) => {
     const e = form.querySelector('#email').value.trim();
     let ok = true;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){ email.classList.add('err'); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){ email.classList.add('err'); ok = false; showFirstError(form); }
     if (!chk.checked){
       consentWrap.classList.remove('err'); void consentWrap.offsetWidth;   // riavvia l'animazione
       consentWrap.classList.add('err'); ok = false;
@@ -337,7 +362,7 @@ async function send(eventId, honeypot){
 function finish(){
   state.done = true; setProgress();
   const a = state.answers;
-  app.replaceChildren(el('div',{class:'card end'},[
+  setView(el('div',{class:'card end'},[
     el('div',{class:'icon ok',text:'✓'}),
     el('h1',{text:'Richiesta ricevuta, ' + (a.nome || '') + '!'}),
     el('p',{text:'Perfetto! Il tuo caso è nelle mani giuste: presto avrai le risposte che cerchi.'}),
