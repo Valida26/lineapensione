@@ -253,7 +253,7 @@ function render(){
 function intro(){
   const start = el('button',{type:'button',class:'btn accent',text:'Continua'});
   start.addEventListener('click', () => {
-    if (!state.started){ state.started = true; px('trackCustom','QuizIniziato'); }
+    state.started = true;
     go(0);
   });
   setView(el('div',{class:'card intro'},[
@@ -337,7 +337,7 @@ function emailStep(step, card){
       alert('Si è verificato un problema di connessione. Riprova tra qualche secondo.');
       return;
     }
-    px('track','Lead',{content_name:'Consulenza pensionistica'},{eventID:eventId});
+    px('track','Lead',{},{eventID:eventId});   // solo evento standard, nessun parametro extra
     finish();
   });
 }
