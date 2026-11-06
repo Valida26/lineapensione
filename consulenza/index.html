@@ -78,7 +78,6 @@
   .consent input{margin-top:2px;width:22px;height:22px;accent-color:var(--navy);flex:0 0 22px}
   .consent a{color:var(--navy)}
   .consent-wrap.err .consent{color:var(--text)}
-  .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0}
   .note{background:var(--lime-soft);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--navy);margin-bottom:18px}
   .intro{text-align:center;padding-top:40px;padding-bottom:36px}
   .intro h1{font-size:27px;margin-bottom:12px}
@@ -90,7 +89,8 @@
   .end p{color:var(--muted);font-size:15px;margin-bottom:10px}
   .trust{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:13px}
   .trust span::before{content:"✓ ";color:var(--navy);font-weight:700}
-  footer{margin-top:auto;padding-top:28px;text-align:center;font-size:12px;color:var(--muted)}
+  .disclaimer{margin-top:auto;padding-top:28px;font-size:11px;line-height:1.5;color:#8A94A6;text-align:center;max-width:520px;align-self:center}
+  footer{padding-top:10px;text-align:center;font-size:12px;color:var(--muted)}
   @media (min-width:640px){.card{padding:36px 34px}h1{font-size:25px}}
 </style>
 </head>
@@ -106,6 +106,7 @@
   <div class="progress"><div id="bar"></div></div>
   <main id="app"></main>
   <div class="trust" id="trust"><span>Consulenti previdenziali</span><span>Analisi completa del tuo caso</span><span>Dati protetti</span></div>
+  <p class="disclaimer">Linea Pensione si occupa di analisi delle posizioni contributive e di verifica dei requisiti per accedere alla pensione pubblica italiana. Non vende fondi pensione, piani di previdenza complementare, prodotti assicurativi, investimenti o altri strumenti finanziari, e non svolge attività di intermediazione finanziaria, bancaria o assicurativa.</p>
   <footer>© Linea Pensione · <a href="/privacy-policy.html" style="color:inherit">Privacy</a></footer>
 </div>
 
@@ -311,7 +312,6 @@ function phoneStep(step, card){
 function emailStep(step, card){
   const a = state.answers;
   const email = field('email','','email','email','Inserisci un indirizzo email valido', a.email, 'nome@esempio.com');
-  const hp = el('input',{class:'hp',type:'text',name:'website',tabindex:'-1',autocomplete:'off','aria-hidden':'true'});
   const chk = el('input',{type:'checkbox',id:'privacy'});
   const consent = el('label',{class:'consent',for:'privacy'},[chk]);
   const ctext = el('span');
@@ -319,7 +319,7 @@ function emailStep(step, card){
   consent.appendChild(ctext);
   const consentWrap = el('div',{class:'consent-wrap'},[consent, el('div',{class:'consent-msg',text:'⚠ Per inviare la richiesta spunta la casella qui sopra.'})]);
   chk.addEventListener('change', () => consentWrap.classList.remove('err'));
-  formStep(card, [email, hp, consentWrap], 'Invia', async (form, btn) => {
+  formStep(card, [email, consentWrap], 'Invia', async (form, btn) => {
     const e = form.querySelector('#email').value.trim();
     let ok = true;
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)){ email.classList.add('err'); ok = false; showFirstError(form); }
@@ -332,7 +332,7 @@ function emailStep(step, card){
     a.email = e;
     btn.disabled = true; btn.textContent = 'Invio in corso…';
     const eventId = 'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-    if (!(await send(eventId, hp.value))){
+    if (!(await send(eventId))){
       btn.disabled = false; btn.textContent = 'Invia';
       alert('Si è verificato un problema di connessione. Riprova tra qualche secondo.');
       return;
@@ -343,10 +343,10 @@ function emailStep(step, card){
 }
 
 /* ====== Invio a Google Sheet ====== */
-async function send(eventId, honeypot){
+async function send(eventId){
   const a = state.answers;
   const payload = {
-    stato:'Nuovo', eventId, website: honeypot || '',
+    stato:'Nuovo', eventId, website: '',
     contact: { nome:a.nome||'', cognome:a.cognome||'', telefono:a.telefono||'', email:a.email||'' },
     answers: { professione:a.professione||'', sesso:a.sesso||'', fascia:a.fascia||'' },
     tracking: tracking()
